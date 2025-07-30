@@ -8,6 +8,8 @@ mp_drawing = mp.solutions.drawing_utils
 
 # เปิดกล้อง
 cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    raise RuntimeError("Cannot open camera")
 
 # ตัวแปรสำหรับคำนวณ FPS
 prev_time = 0
