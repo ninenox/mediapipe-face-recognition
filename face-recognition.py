@@ -80,6 +80,8 @@ def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD):
 # ---------- STEP 4: Webcam Loop ----------
 def run_webcam_recognition(known_faces):
     cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        raise RuntimeError("Cannot open camera")
     prev_time = 0
 
     with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.6) as detector, \
