@@ -30,6 +30,9 @@ def create_known_faces():
     print("🔍 Creating face vectors from /faces ...")
     known_faces = {}
 
+    if not os.path.exists(FACES_DIR):
+        raise FileNotFoundError(f"Folder {FACES_DIR} not found")
+
     with mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1) as face_mesh:
         for person in os.listdir(FACES_DIR):
             person_path = os.path.join(FACES_DIR, person)
