@@ -1,2 +1,38 @@
 # mediapipe-example
-face recognition run on raspberry pi 5 speed 15-25 FPS
+
+โปรเจกต์นี้รวบรวมตัวอย่างสคริปต์การใช้งาน **MediaPipe** และ `OpenCV` สำหรับงานวิเคราะห์ภาพแบบเรียลไทม์ เช่น การตรวจจับใบหน้า Face Mesh การติดตามมือ การตรวจจับท่าทาง และระบบรู้จำใบหน้า สามารถรันบน Raspberry Pi 5 ได้ที่ความเร็วประมาณ 15–25 FPS
+
+## การติดตั้ง
+
+ควรติดตั้ง Python 3 และไลบรารีที่จำเป็นดังนี้
+
+```bash
+pip install mediapipe opencv-python scikit-learn numpy
+```
+
+## โครงสร้างโฟลเดอร์
+
+- `face-detect.py` – สคริปต์ตรวจจับใบหน้า
+- `face-mesh.py` – วาดจุด Face Mesh พร้อมค่า FPS
+- `hand-tracking.py` – ตรวจจับและติดตามมือ
+- `pose-detect.py` – ตรวจจับท่าทางร่างกาย
+- `face-recognition.py` – ระบบรู้จำใบหน้าโดยใช้คุณลักษณะจาก Face Mesh
+- `faces/` – เก็บภาพตัวอย่างเพื่อใช้สร้างเวกเตอร์ใบหน้าสำหรับการรู้จำ
+
+## วิธีใช้งาน
+
+รันสคริปต์ที่ต้องการด้วยคำสั่งเช่น
+
+```bash
+python face-detect.py
+python face-mesh.py
+python hand-tracking.py
+python pose-detect.py
+python face-recognition.py
+```
+
+กด `q` เพื่อปิดหน้าต่างแสดงผลของแต่ละโปรแกรม
+
+## หมายเหตุ
+
+สคริปต์เหล่านี้ออกแบบมาเพื่อทดลองหรือศึกษาการใช้งาน MediaPipe ผู้ใช้สามารถปรับแก้พารามิเตอร์ภายในไฟล์สคริปต์ให้เหมาะกับงานของตนเอง
