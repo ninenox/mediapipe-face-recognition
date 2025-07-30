@@ -1,30 +1,30 @@
 # mediapipe-example
 
-โปรเจกต์นี้รวบรวมตัวอย่างสคริปต์การใช้งาน **MediaPipe** และ `OpenCV` สำหรับงานวิเคราะห์ภาพแบบเรียลไทม์ เช่น การตรวจจับใบหน้า Face Mesh การติดตามมือ การตรวจจับท่าทาง และระบบรู้จำใบหน้า สามารถรันบน Raspberry Pi 5 ได้ที่ความเร็วประมาณ 15–25 FPS
+This project collects sample scripts using **MediaPipe** and `OpenCV` for real-time image analysis such as face detection, Face Mesh, hand tracking, pose detection, and face recognition. They can run on a Raspberry Pi 5 at about 15–25 FPS.
 
-## การติดตั้ง
+## Installation
 
-ควรติดตั้ง Python 3 แล้วลงไลบรารีจากไฟล์ `requirements.txt` ด้วยคำสั่ง
+You should install Python 3 and then install the libraries listed in `requirements.txt` with the command:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## โครงสร้างโฟลเดอร์
+## Folder structure
 
-- `face-detect.py` – สคริปต์ตรวจจับใบหน้า
-- `face-mesh.py` – วาดจุด Face Mesh พร้อมค่า FPS
-- `hand-tracking.py` – ตรวจจับและติดตามมือ
-- `pose-detect.py` – ตรวจจับท่าทางร่างกาย
-- `face-recognition.py` – ระบบรู้จำใบหน้าโดยใช้คุณลักษณะจาก Face Mesh
-- `faces/` – เก็บภาพตัวอย่างเพื่อใช้สร้างเวกเตอร์ใบหน้าสำหรับการรู้จำ
-  ภายในโฟลเดอร์นี้ให้สร้างโฟลเดอร์ย่อยชื่อของแต่ละคน เช่น `faces/ชื่อคน/`
-  ใส่ภาพใบหน้าหลาย ๆ ใบของคนคนนั้น (รองรับไฟล์ `.jpg` หรือ `.png`) แล้วจึงรัน `face-recognition.py`
-  หากยังไม่มีโฟลเดอร์ `faces/` ให้สร้างขึ้นก่อนด้วยคำสั่ง `mkdir faces`
+- `face-detect.py` – face detection script
+- `face-mesh.py` – draw Face Mesh points with FPS counter
+- `hand-tracking.py` – detect and track hands
+- `pose-detect.py` – detect body poses
+- `face-recognition.py` – face recognition using features from Face Mesh
+- `faces/` – sample images for building face vectors used for recognition
+  Inside this folder create a subfolder for each person, e.g. `faces/person-name/`
+  Add several face images of that person (supports `.jpg` or `.png`) before running `face-recognition.py`
+  If `faces/` does not exist, create it first with `mkdir faces`
 
-## วิธีใช้งาน
+## Usage
 
-รันสคริปต์ที่ต้องการด้วยคำสั่งเช่น
+Run the desired script using commands like:
 
 ```bash
 python face-detect.py
@@ -34,8 +34,8 @@ python pose-detect.py
 python face-recognition.py
 ```
 
-กด `q` เพื่อปิดหน้าต่างแสดงผลของแต่ละโปรแกรม
+Press `q` to close each program's display window.
 
-## หมายเหตุ
+## Notes
 
-สคริปต์เหล่านี้ออกแบบมาเพื่อทดลองหรือศึกษาการใช้งาน MediaPipe ผู้ใช้สามารถปรับแก้พารามิเตอร์ภายในไฟล์สคริปต์ให้เหมาะกับงานของตนเอง
+These scripts are intended for experimentation or studying MediaPipe. Users can adjust parameters within each script to suit their own tasks.
