@@ -4,10 +4,10 @@
 
 ## การติดตั้ง
 
-ควรติดตั้ง Python 3 และไลบรารีที่จำเป็นดังนี้
+ควรติดตั้ง Python 3 แล้วลงไลบรารีจากไฟล์ `requirements.txt` ด้วยคำสั่ง
 
 ```bash
-pip install mediapipe opencv-python scikit-learn numpy
+pip install -r requirements.txt
 ```
 
 ## โครงสร้างโฟลเดอร์
