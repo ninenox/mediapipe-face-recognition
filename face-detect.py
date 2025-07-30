@@ -6,6 +6,8 @@ mp_face_detection = mp.solutions.face_detection
 mp_drawing = mp.solutions.drawing_utils
 
 cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    raise RuntimeError("Cannot open camera")
 
 # เริ่มต้นตัวแปรเวลา
 prev_time = 0
