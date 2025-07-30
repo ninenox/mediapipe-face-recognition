@@ -6,7 +6,10 @@ import time
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ------------- CONFIG -------------
-FACES_DIR = "faces"
+# กำหนดพาธโฟลเดอร์ฐานของโปรเจกต์
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# ใช้พาธสัมบูรณ์เพื่อให้เรียกสคริปต์จากที่ใดก็ได้
+FACES_DIR = os.path.join(BASE_DIR, "faces")
 COSINE_THRESHOLD = 0.95  # ปรับให้เข้มขึ้น
 KEY_LANDMARKS = [
     33, 133, 160, 159, 158, 144,         # left eye
