@@ -36,7 +36,11 @@ python face-recognition.py
 python face_recognition_ui.py
 ```
 
+
 Before running `face_recognition_ui.py`, install `Pillow` (for example, with `pip install Pillow`) and verify that `face_recognition_processor.py` is present in the project.
+
+While running `face-recognition.py`, press `n` to capture and register a new face. The image will be saved and the `faces/` folder will be updated automatically.
+
 
 Press `q` to close each program's display window.
 
