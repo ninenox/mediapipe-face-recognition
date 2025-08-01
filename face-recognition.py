@@ -83,6 +83,39 @@ def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD):
         return best_name, best_score
     return "Unknown", best_score
 
+# ---------- STEP 3.5: Register New Face ----------
+def register_new_face(cap, known_faces, num_samples=5, delay=1):
+    """Capture a new face from webcam and update known faces."""
+    name = input("🆕 กรอกชื่อสำหรับใบหน้าใหม่: ").strip()
+    if not name:
+        print("❌ ไม่ได้กรอกชื่อ ยกเลิกการบันทึก")
+        return known_faces
+
+    person_dir = os.path.join(FACES_DIR, name)
+    os.makedirs(person_dir, exist_ok=True)
+    saved_files = []
+
+    print("📸 เริ่มถ่ายภาพ...")
+    for i in range(num_samples):
+        time.sleep(delay)
+        ret, frame = cap.read()
+        if not ret:
+            print("❌ ไม่สามารถถ่ายภาพได้")
+            continue
+        file_path = os.path.join(person_dir, f"{int(time.time())}_{i}.jpg")
+        cv2.imwrite(file_path, frame)
+        saved_files.append(file_path)
+        print(f"✅ บันทึก: {file_path}")
+
+    if saved_files:
+        print("✨ อัปเดตฐานข้อมูล ...")
+        known_faces = create_known_faces()
+        print("✅ เสร็จสิ้น")
+    else:
+        print("❌ ไม่มีไฟล์ที่ถูกบันทึก")
+
+    return known_faces
+
 # ---------- STEP 4: Webcam Loop ----------
 def run_webcam_recognition(known_faces):
     cap = cv2.VideoCapture(0)
@@ -137,10 +170,15 @@ def run_webcam_recognition(known_faces):
 
             cv2.putText(frame, f'FPS: {int(fps)}', (30, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+            cv2.putText(frame, "กด 'n' ลงทะเบียนใบหน้าใหม่", (30, 60),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
             cv2.imshow("Face Recognition (Optimized)", frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord("q"):
                 break
+            elif key == ord("n"):
+                known_faces = register_new_face(cap, known_faces)
 
     cap.release()
     cv2.destroyAllWindows()
