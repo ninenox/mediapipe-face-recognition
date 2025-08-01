@@ -1,5 +1,5 @@
 import threading
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 
 import cv2
 
@@ -7,7 +7,7 @@ import cv2
 class FaceRecognitionProcessor:
     """Simple webcam loop that streams frames via a callback."""
 
-    def __init__(self, frame_callback: Callable[[any], None]) -> None:
+    def __init__(self, frame_callback: Callable[[Any], None]) -> None:
         self.frame_callback = frame_callback
         self.cap: Optional[cv2.VideoCapture] = None
         self.running = False
