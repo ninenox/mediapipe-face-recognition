@@ -17,6 +17,7 @@ pip install -r requirements.txt
 - `hand-tracking.py` – detect and track hands
 - `pose-detect.py` – detect body poses
 - `face-recognition.py` – face recognition using features from Face Mesh
+- `face_recognition_ui.py` – GUI for face recognition
 - `faces/` – sample images for building face vectors used for recognition
   Inside this folder create a subfolder for each person, e.g. `faces/person-name/`
   Add several face images of that person (supports `.jpg` or `.png`) before running `face-recognition.py`
@@ -32,9 +33,14 @@ python face-mesh.py
 python hand-tracking.py
 python pose-detect.py
 python face-recognition.py
+python face_recognition_ui.py
 ```
 
+
+Before running `face_recognition_ui.py`, install `Pillow` (for example, with `pip install Pillow`) and verify that `face_recognition_processor.py` is present in the project.
+
 While running `face-recognition.py`, press `n` to capture and register a new face. The image will be saved and the `faces/` folder will be updated automatically.
+
 
 Press `q` to close each program's display window.
 
