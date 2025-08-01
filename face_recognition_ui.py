@@ -28,7 +28,10 @@ class FaceRecognitionUI:
         if self.processor:
             return
         try:
-            self.processor = FaceRecognitionProcessor(self.update_image)
+            # Schedule image updates on the Tk main thread to avoid threading issues
+            self.processor = FaceRecognitionProcessor(
+                lambda frame: self.master.after(0, self.update_image, frame)
+            )
             self.processor.start()
             self.start_button.config(state=tk.DISABLED)
             self.stop_button.config(state=tk.NORMAL)
