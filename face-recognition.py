@@ -84,68 +84,83 @@ def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD):
     return "Unknown", best_score
 
 # ---------- STEP 4: Webcam Loop ----------
-def run_webcam_recognition(known_faces):
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        raise RuntimeError("Cannot open camera")
-    prev_time = 0
+class WebcamRecognition:
+    def __init__(self, known_faces, frame_callback=None):
+        self.known_faces = known_faces
+        self.frame_callback = frame_callback or self.default_callback
+        self.running = False
+        self.cap = None
 
-    with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.6) as detector, \
-         mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=5) as face_mesh:
+    def default_callback(self, frame):
+        cv2.imshow("Face Recognition (Optimized)", frame)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            self.stop()
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
+    def start(self):
+        self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            raise RuntimeError("Cannot open camera")
+        self.running = True
+        prev_time = 0
 
-            curr_time = time.time()
-            fps = 1 / (curr_time - prev_time)
-            prev_time = curr_time
+        with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.6) as detector, \
+             mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=5) as face_mesh:
 
-            h, w, _ = frame.shape
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = detector.process(rgb)
+            while self.running:
+                ret, frame = self.cap.read()
+                if not ret:
+                    break
 
-            if results.detections:
-                for det in results.detections:
-                    box = det.location_data.relative_bounding_box
-                    x1 = max(0, int(box.xmin * w))
-                    y1 = max(0, int(box.ymin * h))
-                    x2 = min(w, int((box.xmin + box.width) * w))
-                    y2 = min(h, int((box.ymin + box.height) * h))
+                curr_time = time.time()
+                fps = 1 / (curr_time - prev_time)
+                prev_time = curr_time
 
-                    # Skip face too small
-                    if (x2 - x1) < 50 or (y2 - y1) < 50:
-                        continue
+                h, w, _ = frame.shape
+                rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                results = detector.process(rgb)
 
-                    face_roi = frame[y1:y2, x1:x2]
-                    face_rgb = cv2.cvtColor(face_roi, cv2.COLOR_BGR2RGB)
-                    mesh_result = face_mesh.process(face_rgb)
+                if results.detections:
+                    for det in results.detections:
+                        box = det.location_data.relative_bounding_box
+                        x1 = max(0, int(box.xmin * w))
+                        y1 = max(0, int(box.ymin * h))
+                        x2 = min(w, int((box.xmin + box.width) * w))
+                        y2 = min(h, int((box.ymin + box.height) * h))
 
-                    name = "Unknown"
-                    score = 0
+                        # Skip face too small
+                        if (x2 - x1) < 50 or (y2 - y1) < 50:
+                            continue
 
-                    if mesh_result.multi_face_landmarks:
-                        landmarks = mesh_result.multi_face_landmarks[0].landmark
-                        vector = extract_key_vector(landmarks)
-                        name, score = identify_by_cosine(vector, known_faces)
+                        face_roi = frame[y1:y2, x1:x2]
+                        face_rgb = cv2.cvtColor(face_roi, cv2.COLOR_BGR2RGB)
+                        mesh_result = face_mesh.process(face_rgb)
 
-                    color = (0, 255, 0) if name != "Unknown" else (0, 0, 255)
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-                    cv2.putText(frame, f"{name} ({score:.2f})", (x1, y1 - 10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+                        name = "Unknown"
+                        score = 0
 
-            cv2.putText(frame, f'FPS: {int(fps)}', (30, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+                        if mesh_result.multi_face_landmarks:
+                            landmarks = mesh_result.multi_face_landmarks[0].landmark
+                            vector = extract_key_vector(landmarks)
+                            name, score = identify_by_cosine(vector, self.known_faces)
 
-            cv2.imshow("Face Recognition (Optimized)", frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+                        color = (0, 255, 0) if name != "Unknown" else (0, 0, 255)
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                        cv2.putText(frame, f"{name} ({score:.2f})", (x1, y1 - 10),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
-    cap.release()
-    cv2.destroyAllWindows()
+                cv2.putText(frame, f'FPS: {int(fps)}', (30, 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+
+                self.frame_callback(frame)
+
+        self.cap.release()
+        cv2.destroyAllWindows()
+
+    def stop(self):
+        self.running = False
 
 # ----------------- RUN ------------------
 if __name__ == "__main__":
     known_faces = create_known_faces()
-    run_webcam_recognition(known_faces)
+    webcam = WebcamRecognition(known_faces)
+    webcam.start()
