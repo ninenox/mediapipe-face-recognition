@@ -3,14 +3,14 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import cv2
 
-from face_recognition_processor import FaceRecognitionProcessor
 
 
 class FaceRecognitionUI:
     def __init__(self, master: tk.Tk) -> None:
         self.master = master
         master.title("Face Recognition UI")
-        self.processor: FaceRecognitionProcessor | None = None
+        self.cap = None
+        self.running = False
 
         self.image_label = tk.Label(master)
         self.image_label.pack()
@@ -25,25 +25,35 @@ class FaceRecognitionUI:
         self.stop_button.pack(side=tk.LEFT, padx=5)
 
     def start_camera(self) -> None:
-        if self.processor:
+        if self.running:
             return
-        try:
-            # Schedule image updates on the Tk main thread to avoid threading issues
-            self.processor = FaceRecognitionProcessor(
-                lambda frame: self.master.after(0, self.update_image, frame)
-            )
-            self.processor.start()
-            self.start_button.config(state=tk.DISABLED)
-            self.stop_button.config(state=tk.NORMAL)
-        except Exception as exc:
-            messagebox.showerror("Error", str(exc))
+        self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            self.cap.release()
+            self.cap = None
+            messagebox.showerror("Error", "Cannot open camera")
+            return
+        self.running = True
+        self.start_button.config(state=tk.DISABLED)
+        self.stop_button.config(state=tk.NORMAL)
+        self.master.after(10, self._update_frame)
 
     def stop_camera(self) -> None:
-        if self.processor:
-            self.processor.stop()
-            self.processor = None
+        self.running = False
+        if self.cap:
+            self.cap.release()
+            self.cap = None
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
+
+    def _update_frame(self) -> None:
+        if not self.running or not self.cap:
+            return
+        ret, frame = self.cap.read()
+        if ret:
+            self.update_image(frame)
+        if self.running:
+            self.master.after(10, self._update_frame)
 
     def update_image(self, frame) -> None:
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
