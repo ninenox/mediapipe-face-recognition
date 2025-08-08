@@ -18,6 +18,7 @@ pip install -r requirements.txt
 - `pose-detect.py` – detect body poses
 - `face-recognition.py` – face recognition using features from Face Mesh
 - `face_recognition_ui.py` – GUI for face recognition
+- `attendance.py` – face recognition for logging employee check‑in/out times
 - `faces/` – sample images for building face vectors used for recognition
   Inside this folder create a subfolder for each person, e.g. `faces/person-name/`
   Add several face images of that person (supports `.jpg` or `.png`) before running `face-recognition.py`
@@ -34,6 +35,7 @@ python hand-tracking.py
 python pose-detect.py
 python face-recognition.py
 python face_recognition_ui.py
+python attendance.py
 ```
 
 
