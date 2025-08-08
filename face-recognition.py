@@ -11,14 +11,27 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ใช้พาธสัมบูรณ์เพื่อให้เรียกสคริปต์จากที่ใดก็ได้
 FACES_DIR = os.path.join(BASE_DIR, "faces")
 COSINE_THRESHOLD = 0.95  # ปรับให้เข้มขึ้น
+
+# จุด landmark สำคัญเพิ่มเติมและน้ำหนักของแต่ละจุด
 KEY_LANDMARKS = [
     33, 133, 160, 159, 158, 144,         # left eye
     362, 263, 387, 386, 385, 373,        # right eye
+    107, 336, 50, 280,                   # temples
     1, 2, 98, 327,                       # nose bridge
     61, 291, 78, 308, 13, 14,            # mouth
     199, 234, 93, 132, 58, 288,          # jawline
     10, 152                              # forehead center, chin center
 ]
+# ให้ดวงตาและปากมีอิทธิพลมากกว่า
+KEY_WEIGHTS = np.array([
+    *[2.0]*6,        # left eye
+    *[2.0]*6,        # right eye
+    *[1.5]*4,        # temples
+    *[1.5]*4,        # nose bridge
+    *[2.0]*6,        # mouth
+    *[1.0]*6,        # jawline
+    *[1.0]*2         # forehead & chin
+])
 # -----------------------------------
 
 mp_face_detection = mp.solutions.face_detection
@@ -61,27 +74,41 @@ def create_known_faces():
 
 # ---------- STEP 2: Extract & Normalize Landmarks ----------
 def extract_key_vector(landmarks):
-    key_points = np.array([[landmarks[i].x, landmarks[i].y] for i in KEY_LANDMARKS])
-    center = np.mean(key_points, axis=0)
+    """ดึงและจัดแนวพิกัด landmark ให้เป็นเวกเตอร์มาตรฐาน"""
+    key_points = np.array([[landmarks[i].x, landmarks[i].y, landmarks[i].z] for i in KEY_LANDMARKS])
+
+    # จัดศูนย์กลางโดยใช้น้ำหนัก
+    center = np.average(key_points, axis=0, weights=KEY_WEIGHTS)
     normed = key_points - center
-    flat = normed.flatten()
-    return flat / np.linalg.norm(flat)
+
+    # จัดแนวแกนหลักเพื่อลดผลกระทบจากการเอียงศีรษะ (Procrustes แบบง่าย)
+    U, _, _ = np.linalg.svd(normed.T)
+    aligned = normed @ U
+
+    # ทำ normalization และถ่วงน้ำหนักก่อน flatten
+    weighted = aligned * KEY_WEIGHTS[:, None]
+    flat = weighted.flatten()
+    norm = np.linalg.norm(flat)
+    return flat / norm if norm != 0 else flat
 
 # ---------- STEP 3: Compare by Cosine ----------
-def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD):
-    best_score = -1
-    best_name = "Unknown"
-
+def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD, margin=0.03):
+    scores = []
     for name, vectors in known_faces.items():
         for known_vec in vectors:
             score = cosine_similarity(vec.reshape(1, -1), known_vec.reshape(1, -1))[0][0]
-            if score > best_score:
-                best_score = score
-                best_name = name
+            scores.append((score, name))
 
-    if best_score >= threshold:
-        return best_name, best_score
-    return "Unknown", best_score
+    if not scores:
+        return "Unknown", -1
+
+    scores.sort(key=lambda x: x[0], reverse=True)
+    best_score, best_name = scores[0]
+    second_score = scores[1][0] if len(scores) > 1 else -1
+
+    if best_score < threshold or (best_score - second_score) < margin:
+        return "Unknown", best_score
+    return best_name, best_score
 
 # ---------- STEP 3.5: Register New Face ----------
 def register_new_face(cap, known_faces, num_samples=5, delay=1):
@@ -96,16 +123,38 @@ def register_new_face(cap, known_faces, num_samples=5, delay=1):
     saved_files = []
 
     print("📸 เริ่มถ่ายภาพ...")
-    for i in range(num_samples):
-        time.sleep(delay)
-        ret, frame = cap.read()
-        if not ret:
-            print("❌ ไม่สามารถถ่ายภาพได้")
-            continue
-        file_path = os.path.join(person_dir, f"{int(time.time())}_{i}.jpg")
-        cv2.imwrite(file_path, frame)
-        saved_files.append(file_path)
-        print(f"✅ บันทึก: {file_path}")
+    with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.6) as detector:
+        for i in range(num_samples):
+            time.sleep(delay)
+            ret, frame = cap.read()
+            if not ret:
+                print("❌ ไม่สามารถถ่ายภาพได้")
+                continue
+
+            h, w, _ = frame.shape
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            result = detector.process(rgb)
+
+            if not result.detections:
+                print("❌ ไม่พบใบหน้า ข้ามภาพนี้")
+                continue
+
+            box = result.detections[0].location_data.relative_bounding_box
+            x1 = max(0, int(box.xmin * w))
+            y1 = max(0, int(box.ymin * h))
+            x2 = min(w, int((box.xmin + box.width) * w))
+            y2 = min(h, int((box.ymin + box.height) * h))
+
+            face_roi = frame[y1:y2, x1:x2]
+            if face_roi.size == 0:
+                print("❌ ไม่ได้ภาพใบหน้าที่ใช้ได้")
+                continue
+
+            face_resized = cv2.resize(face_roi, (256, 256))
+            file_path = os.path.join(person_dir, f"{int(time.time())}_{i}.jpg")
+            cv2.imwrite(file_path, face_resized)
+            saved_files.append(file_path)
+            print(f"✅ บันทึก: {file_path}")
 
     if saved_files:
         print("✨ อัปเดตฐานข้อมูล ...")
