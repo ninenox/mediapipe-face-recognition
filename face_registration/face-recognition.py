@@ -120,7 +120,22 @@ def extract_key_vector(landmarks):
     return flat / norm if norm != 0 else flat
 
 # ---------- STEP 3: Compare by Cosine ----------
-def identify_by_cosine(vec, known_faces, threshold=None, margin=0.03):
+def identify_by_cosine(vec, known_faces, threshold=None, margin=0.03, use_full=False):
+    """Identify the closest known face using cosine similarity.
+
+    Parameters
+    ----------
+    vec : np.ndarray
+        Vector representation of the face to identify.
+    known_faces : dict
+        Dictionary of known face representations.
+    threshold : float, optional
+        Minimum cosine similarity required for a match.
+    margin : float, optional
+        Minimum difference between the best and second-best scores.
+    use_full : bool, optional
+        If True, use all stored vectors for comparison when available.
+    """
     threshold = threshold if threshold is not None else COSINE_THRESHOLD
 
     scores = []
