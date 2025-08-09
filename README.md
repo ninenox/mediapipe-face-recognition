@@ -44,6 +44,13 @@ Before running `face_registration/face_recognition_ui.py`, install `Pillow` (for
 
 While running `face_registration/face-recognition.py`, press `n` to capture and register a new face. The image will be saved and the `face_registration/faces/` folder will be updated automatically.
 
+For `face_registration/face-recognition.py` you can adjust the cosine similarity threshold used for matching by either setting the environment variable `COSINE_THRESHOLD` or passing the command-line option `--threshold`, for example:
+
+```bash
+COSINE_THRESHOLD=0.9 python face_registration/face-recognition.py
+# or
+python face_registration/face-recognition.py --threshold 0.9
+```
 
 Press `q` to close each program's display window.
 

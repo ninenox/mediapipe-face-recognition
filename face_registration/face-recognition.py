@@ -1,4 +1,5 @@
 import os
+import argparse
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -10,7 +11,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ใช้พาธสัมบูรณ์เพื่อให้เรียกสคริปต์จากที่ใดก็ได้
 FACES_DIR = os.path.join(BASE_DIR, "faces")
-COSINE_THRESHOLD = 0.95  # ปรับให้เข้มขึ้น
+COSINE_THRESHOLD = float(os.getenv("COSINE_THRESHOLD", 0.95))  # ปรับให้เข้มขึ้น
 
 # จุด landmark สำคัญเพิ่มเติมและน้ำหนักของแต่ละจุด
 KEY_LANDMARKS = [
@@ -119,7 +120,9 @@ def extract_key_vector(landmarks):
     return flat / norm if norm != 0 else flat
 
 # ---------- STEP 3: Compare by Cosine ----------
-def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD, margin=0.03, use_full=False):
+def identify_by_cosine(vec, known_faces, threshold=None, margin=0.03):
+    threshold = threshold if threshold is not None else COSINE_THRESHOLD
+
     scores = []
     for name, data in known_faces.items():
         if use_full and isinstance(data, dict) and "vectors" in data:
@@ -199,7 +202,7 @@ def register_new_face(cap, known_faces, num_samples=5, delay=1, use_median=False
 
 # ---------- STEP 4: Webcam Loop ----------
 
-def run_webcam_recognition(known_faces):
+def run_webcam_recognition(known_faces, threshold=COSINE_THRESHOLD):
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         raise RuntimeError("Cannot open camera")
@@ -243,7 +246,7 @@ def run_webcam_recognition(known_faces):
                     if mesh_result.multi_face_landmarks:
                         landmarks = mesh_result.multi_face_landmarks[0].landmark
                         vector = extract_key_vector(landmarks)
-                        name, score = identify_by_cosine(vector, known_faces)
+                        name, score = identify_by_cosine(vector, known_faces, threshold=threshold)
 
                     color = (0, 255, 0) if name != "Unknown" else (0, 0, 255)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
@@ -266,9 +269,10 @@ def run_webcam_recognition(known_faces):
     cv2.destroyAllWindows()
 
 class WebcamRecognition:
-    def __init__(self, known_faces, frame_callback=None):
+    def __init__(self, known_faces, frame_callback=None, threshold=COSINE_THRESHOLD):
         self.known_faces = known_faces
         self.frame_callback = frame_callback or self.default_callback
+        self.threshold = threshold
         self.running = False
         self.cap = None
 
@@ -322,7 +326,7 @@ class WebcamRecognition:
                         if mesh_result.multi_face_landmarks:
                             landmarks = mesh_result.multi_face_landmarks[0].landmark
                             vector = extract_key_vector(landmarks)
-                            name, score = identify_by_cosine(vector, self.known_faces)
+                            name, score = identify_by_cosine(vector, self.known_faces, threshold=self.threshold)
 
                         color = (0, 255, 0) if name != "Unknown" else (0, 0, 255)
                         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
@@ -343,6 +347,11 @@ class WebcamRecognition:
 
 # ----------------- RUN ------------------
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--threshold", type=float, default=COSINE_THRESHOLD,
+                        help="Cosine similarity threshold (0-1)")
+    args = parser.parse_args()
+    COSINE_THRESHOLD = args.threshold
     known_faces = create_known_faces()
-    webcam = WebcamRecognition(known_faces)
+    webcam = WebcamRecognition(known_faces, threshold=COSINE_THRESHOLD)
     webcam.start()
