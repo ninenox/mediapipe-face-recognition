@@ -16,13 +16,14 @@ pip install -r requirements.txt
 - `face-mesh.py` – draw Face Mesh points with FPS counter
 - `hand-tracking.py` – detect and track hands
 - `pose-detect.py` – detect body poses
-- `face-recognition.py` – face recognition using features from Face Mesh
-- `face_recognition_ui.py` – GUI for face recognition
-- `attendance.py` – face recognition for logging employee check‑in/out times
-- `faces/` – sample images for building face vectors used for recognition
-  Inside this folder create a subfolder for each person, e.g. `faces/person-name/`
-  Add several face images of that person (supports `.jpg` or `.png`) before running `face-recognition.py`
-  If `faces/` does not exist, create it first with `mkdir faces`
+- `face_registration/` – face recognition and attendance system
+  - `face-recognition.py` – face recognition using features from Face Mesh
+  - `face_recognition_ui.py` – GUI for face recognition
+  - `attendance.py` – face recognition for logging employee check‑in/out times
+  - `faces/` – sample images for building face vectors used for recognition
+    Inside this folder create a subfolder for each person, e.g. `faces/person-name/`
+    Add several face images of that person (supports `.jpg` or `.png`) before running `face-recognition.py`
+    If `faces/` does not exist, create it first with `mkdir faces`
 
 ## Usage
 
@@ -33,15 +34,15 @@ python face-detect.py
 python face-mesh.py
 python hand-tracking.py
 python pose-detect.py
-python face-recognition.py
-python face_recognition_ui.py
-python attendance.py
+python face_registration/face-recognition.py
+python face_registration/face_recognition_ui.py
+python face_registration/attendance.py
 ```
 
 
-Before running `face_recognition_ui.py`, install `Pillow` (for example, with `pip install Pillow`) and verify that `face_recognition_processor.py` is present in the project.
+Before running `face_registration/face_recognition_ui.py`, install `Pillow` (for example, with `pip install Pillow`) and verify that `face_registration/face_recognition_processor.py` is present in the project.
 
-While running `face-recognition.py`, press `n` to capture and register a new face. The image will be saved and the `faces/` folder will be updated automatically.
+While running `face_registration/face-recognition.py`, press `n` to capture and register a new face. The image will be saved and the `face_registration/faces/` folder will be updated automatically.
 
 
 Press `q` to close each program's display window.
