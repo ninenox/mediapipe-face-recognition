@@ -39,7 +39,21 @@ mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
 
 # ---------- STEP 1: Create Embedding from Folder ----------
-def create_known_faces():
+def create_known_faces(use_median=False, keep_full=False):
+    """โหลดเวกเตอร์ใบหน้าทั้งหมดจากโฟลเดอร์แล้วสร้างตัวแทนหนึ่งเวกเตอร์ต่อคน.
+
+    Parameters
+    ----------
+    use_median : bool, optional
+        หาก True จะใช้ค่า median แทนค่าเฉลี่ยในการรวมเวกเตอร์ (ค่าเริ่มต้น False)
+    keep_full : bool, optional
+        หาก True จะเก็บรายการเวกเตอร์ทั้งหมดไว้ในผลลัพธ์เพื่อการทดลอง
+
+    Returns
+    -------
+    dict
+        {ชื่อคน: เวกเตอร์ตัวแทน หรือ {"rep": เวกเตอร์เฉลี่ย, "vectors": [...]} }
+    """
     print("🔍 Creating face vectors from /faces ...")
     known_faces = {}
 
@@ -51,7 +65,8 @@ def create_known_faces():
             person_path = os.path.join(FACES_DIR, person)
             if not os.path.isdir(person_path):
                 continue
-            known_faces[person] = []
+
+            vectors = []
 
             for img_name in os.listdir(person_path):
                 img_path = os.path.join(person_path, img_name)
@@ -65,10 +80,22 @@ def create_known_faces():
                 if result.multi_face_landmarks:
                     landmarks = result.multi_face_landmarks[0].landmark
                     vector = extract_key_vector(landmarks)
-                    known_faces[person].append(vector)
+                    vectors.append(vector)
                     print(f"✅ Added: {img_path}")
                 else:
                     print(f"❌ No face: {img_path}")
+
+            if not vectors:
+                continue
+
+            rep = np.median(vectors, axis=0) if use_median else np.mean(vectors, axis=0)
+            norm = np.linalg.norm(rep)
+            rep = rep / norm if norm != 0 else rep
+
+            if keep_full:
+                known_faces[person] = {"rep": rep, "vectors": vectors}
+            else:
+                known_faces[person] = rep
 
     return known_faces
 
@@ -92,9 +119,14 @@ def extract_key_vector(landmarks):
     return flat / norm if norm != 0 else flat
 
 # ---------- STEP 3: Compare by Cosine ----------
-def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD, margin=0.03):
+def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD, margin=0.03, use_full=False):
     scores = []
-    for name, vectors in known_faces.items():
+    for name, data in known_faces.items():
+        if use_full and isinstance(data, dict) and "vectors" in data:
+            vectors = data["vectors"]
+        else:
+            rep = data["rep"] if isinstance(data, dict) else data
+            vectors = [rep]
         for known_vec in vectors:
             score = cosine_similarity(vec.reshape(1, -1), known_vec.reshape(1, -1))[0][0]
             scores.append((score, name))
@@ -111,7 +143,7 @@ def identify_by_cosine(vec, known_faces, threshold=COSINE_THRESHOLD, margin=0.03
     return best_name, best_score
 
 # ---------- STEP 3.5: Register New Face ----------
-def register_new_face(cap, known_faces, num_samples=5, delay=1):
+def register_new_face(cap, known_faces, num_samples=5, delay=1, use_median=False, keep_full=False):
     """Capture a new face from webcam and update known faces."""
     name = input("🆕 กรอกชื่อสำหรับใบหน้าใหม่: ").strip()
     if not name:
@@ -158,7 +190,7 @@ def register_new_face(cap, known_faces, num_samples=5, delay=1):
 
     if saved_files:
         print("✨ อัปเดตฐานข้อมูล ...")
-        known_faces = create_known_faces()
+        known_faces = create_known_faces(use_median=use_median, keep_full=keep_full)
         print("✅ เสร็จสิ้น")
     else:
         print("❌ ไม่มีไฟล์ที่ถูกบันทึก")
