@@ -108,7 +108,7 @@ def run_attendance() -> None:
                     if status_text:
                         cv2.putText(frame, status_text, (x1, y1 - 35), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
-            cv2.putText(frame, "กด q เพื่อออก", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            cv2.putText(frame, "press q exit", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             cv2.imshow("Face Attendance", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
