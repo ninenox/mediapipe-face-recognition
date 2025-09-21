@@ -1,5 +1,9 @@
 # mediapipe-example
 
+<p align="center">
+  <img src="https://github.com/google/mediapipe/blob/master/docs/images/mediapipe_logo_color.png?raw=1" alt="MediaPipe Logo" width="200">
+</p>
+
 This project collects sample scripts using **MediaPipe** and `OpenCV` for real-time image analysis such as face detection, Face Mesh, hand tracking, pose detection, and face recognition. They can run on a Raspberry Pi 5 at about 15–25 FPS.
 
 ## Installation
