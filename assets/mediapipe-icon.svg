@@ -1,0 +1,28 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Stylized MediaPipe Icon</title>
+  <desc id="desc">A colorful pipeline-inspired icon representing MediaPipe.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4285F4"/>
+      <stop offset="100%" stop-color="#34A853"/>
+    </linearGradient>
+    <linearGradient id="node" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBC05"/>
+      <stop offset="100%" stop-color="#EA4335"/>
+    </linearGradient>
+    <clipPath id="rounded">
+      <rect x="16" y="16" width="224" height="224" rx="32" ry="32"/>
+    </clipPath>
+  </defs>
+  <rect x="16" y="16" width="224" height="224" rx="32" ry="32" fill="url(#bg)"/>
+  <g clip-path="url(#rounded)" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M56 168 L104 120 L152 168" fill="none" opacity="0.85"/>
+    <path d="M104 120 L152 72 L200 120" fill="none" opacity="0.85"/>
+    <circle cx="56" cy="168" r="24" fill="url(#node)"/>
+    <circle cx="104" cy="120" r="24" fill="#34A853"/>
+    <circle cx="152" cy="168" r="24" fill="#4285F4"/>
+    <circle cx="152" cy="72" r="24" fill="#EA4335"/>
+    <circle cx="200" cy="120" r="24" fill="#FBBC05"/>
+  </g>
+  <text x="50%" y="224" text-anchor="middle" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="28" fill="#FFFFFF" opacity="0.9" font-weight="600">MediaPipe</text>
+</svg>
